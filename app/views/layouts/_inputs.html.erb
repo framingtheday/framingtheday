@@ -1,0 +1,16 @@
+ <div class="actions">
+   <%= form_tag(pages_display_path, :method=>'post') do  %>
+   <table><tr><td>
+   symbol <br /> <%= text_field_tag 'stocksymbol', value=@user_input[:stocksymbol] %> </td></tr><tr><td>
+    open price (if not filled in, will use Yahoo! opening price) <br /> <%= text_field_tag 'openprice', value=@user_input[:openprice] %>
+    </td></tr><tr><td>
+    lookback (number of days) <br /> <%= text_field_tag 'lookback', value=@user_input[:lookback] %>
+      </td></tr><tr><td>
+    lookfoward (number of days) <br /> <%= text_field_tag 'lookforward', value=@user_input[:lookforward] %>
+      </td></tr><tr><td>
+    period (how far back should the historical data start) <br /> <%= text_field_tag 'period', value=@user_input[:period] %>
+      </td></tr><tr><td>
+     <%= submit_tag "display" , :name=> "display" %>
+       </td></tr></table>
+   <% end %>
+  </div>
