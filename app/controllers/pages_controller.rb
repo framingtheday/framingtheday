@@ -102,6 +102,7 @@ def look_back(csv, days_back, days_forward)
       # calculate yesterday high/low crosses
       csv[i][:yesterday_high_cross] = (csv[i+1][:stockhigh] < stockhigh and csv[i+1][:stockhigh] > stocklow ) ? 1 : 0
       csv[i][:yesterday_low_cross] = (csv[i+1][:stocklow] < stockhigh and csv[i+1][:stocklow] > stocklow ) ? 1 : 0
+      csv[i][:yesterday_close_cross] = (csv[i+1][:stockclose] < stockhigh and csv[i+1][:stockclose] > stocklow ) ? 1 : 0
       # calculate look back
       csv[i].merge!(days_back_values(csv, i+1, days_back))
       csv[i][:open_range] =  (csv[i][:stockopen]-csv[i][:lookback_low])/(csv[i][:lookback_high]-csv[i][:lookback_low])
@@ -145,11 +146,14 @@ def crosses(csv_crosses, days_back, days_forward)
   
   prior_high_count = 0
   prior_high_cross = 0
+  prior_close_count = 0
+  prior_close_cross = 0
   prior_low_count = 0
   prior_low_cross = 0
   
   open_prior_high = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stockhigh]) / csv_crosses[0][:median_range]
   open_prior_low = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stocklow]) / csv_crosses[0][:median_range]
+  open_prior_close = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stockclose]) / csv_crosses[0][:median_range]
   range_crosses = [0, 0,0,0,0,0,0,0,0,0,0,0]
   # skip most recent - should be at least look forward days.
   (days_forward..(csv_crosses.length-days_back-1)).each do |i|
@@ -181,6 +185,11 @@ def crosses(csv_crosses, days_back, days_forward)
     if open_prior_low - 0.03 < row_prior_low and open_prior_low + 0.03 > row_prior_low
       prior_low_count += 1
       prior_low_cross += csv_crosses[i][:yesterday_low_cross]
+    end
+    row_prior_close = ( csv_crosses[i][:stockopen] - csv_crosses[i+1][:stockclose]).to_f / csv_crosses[i][:median_range]
+    if open_prior_close - 0.03 < row_prior_close and open_prior_close + 0.03 > row_prior_close
+      prior_close_count += 1
+      prior_close_cross += csv_crosses[i][:yesterday_close_cross]
     end
  #    puts   "prior low = #{row_prior_low}  #{csv_crosses[i][:stockopen]} #{csv_crosses[i][:stockhigh]}  #{csv_crosses[i][:stocklow]} #{ csv_crosses[i+1][:stocklow]} yesterday cross #{csv_crosses[i][:yesterday_low_cross]} #{csv_crosses[i][:median_range]} #{open_prior_low} "
   end
@@ -227,6 +236,8 @@ def crosses(csv_crosses, days_back, days_forward)
 :median_range => csv_crosses[0][:median_range],
 :prior_high_count => prior_high_count ,
 :prior_high_cross => prior_high_cross,
+:prior_close_count => prior_close_count ,
+:prior_close_cross => prior_close_cross,
 :prior_low_count => prior_low_count ,
 :prior_low_cross => prior_low_cross
 

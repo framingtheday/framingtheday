@@ -91,11 +91,11 @@ historical odds based on lookback/lookforward and where the opening is compared 
 </table>
 chance of crossing yesterday's low/high based on historical odds looking at the difference between today's open and yesterday's high (low) and how often the high (low) was crossed.
 <table border="1">
-<tr><td>low cross</td> <td> high cross</td> </tr>
+<tr><td>low cross</td><td>close cross</td> <td> high cross</td> </tr>
 <tr>
-<td> 
-<%= "%.0f" % ( 100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count] ) %> % </td>
-<td> <%="%.0f" % ( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> % </td>
+<td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count] ) %> % </td>
+<td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> % </td>
+<td> <%= "%.0f" % ( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> % </td>
 </tr>
 </table>
 
