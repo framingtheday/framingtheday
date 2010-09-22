@@ -202,9 +202,15 @@ def crosses(csv_crosses, days_back, days_forward)
       12.times do | j |
         pts[j] =   ( j - 3.0 ) / 5.0 * ( csv_crosses[0][:lookback_high] - csv_crosses[0][:lookback_low] ) + csv_crosses[0][:lookback_low] 
       end
-   
+       csv_crosses[0].merge!(last_21(csv_crosses,1)) 
   
-  { :today_pivot_position=> today_pivot_position,
+ 
+   # return a hash of various values to be displayed
+  
+  { 
+  :stockdate_today => csv_crosses[0][:stockdate],
+   :stockdate_yesterday => csv_crosses[1][:stockdate],
+  :today_pivot_position=> today_pivot_position,
   :pivot => csv_crosses[0][:pivot],
   :r3 => csv_crosses[0][:r3],
   :r2 => csv_crosses[0][:r2],
@@ -234,12 +240,16 @@ def crosses(csv_crosses, days_back, days_forward)
 :yesterday_low => csv_crosses[1][:stocklow],
 :yesterday_last => csv_crosses[1][:stockclose],
 :median_range => csv_crosses[0][:median_range],
+:median_25 => csv_crosses[0][:median_25],
+:median_75 => csv_crosses[0][:median_75],
 :prior_high_count => prior_high_count ,
 :prior_high_cross => prior_high_cross,
 :prior_close_count => prior_close_count ,
 :prior_close_cross => prior_close_cross,
 :prior_low_count => prior_low_count ,
-:prior_low_cross => prior_low_cross
+:prior_low_cross => prior_low_cross,
+:last_21_u_25 => csv_crosses[0][:last_21_u_25],
+:last_21_l_25 => csv_crosses[0][:last_21_l_25] 
 
 }
 end
@@ -303,7 +313,18 @@ def median_range(csv, i)
   10.times { | whch | a << csv[i+whch+1][:range] if csv[i+whch+1] }
   a.sort!
   a_length = a.length
-  { :median_range => (a[a_length/2]+a[a_length/2-1])/2.0 }
+  { :median_range => (a[a_length/2]+a[a_length/2-1])/2.0, :median_25 => a[a_length/4], :median_75 => a[(a_length+2)*3/4] }
+end
+
+def last_21(csv, start) 
+  u = []
+  d = []
+  u = (start..(start+20)).map { |i| (csv[i][:stockhigh]-csv[i][:stockopen])/csv[i][:stockopen] }
+  d = (start..(start+20)).map { |i| (csv[i][:stockopen]-csv[i][:stocklow])/csv[i][:stockopen] }
+  u.sort!
+  d.sort!
+  { :last_21_u_25 => ((1.0 + u[5]) * csv[0][:stockopen]).round(2) , 
+  :last_21_l_25 => ((1.0 - d[5]) * csv[0][:stockopen]).round(2) }
 end
 
 end

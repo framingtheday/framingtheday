@@ -7,7 +7,7 @@
 <tr><td>day</td><td>open</td><td>high</td><td>low</td><td>last</td>
 </tr>
 <tr>
-<td>today</td>
+<td><%= @cross_percent[:stockdate_today] %> </td>
 <td><%= "%.2f" % @cross_percent[:today_open] %></td>
 <td><%= "%.2f" % @cross_percent[:today_high] %></td>
 <td><%= "%.2f" % @cross_percent[:today_low] %></td>
@@ -15,7 +15,7 @@
 </tr>
 
 <tr>
-<td>yesterday</td>
+<td><%= @cross_percent[:stockdate_yesterday] %> </td>
 <td><%= "%.2f" % @cross_percent[:yesterday_open] %></td>
 <td><%= "%.2f" % @cross_percent[:yesterday_high] %></td>
 <td><%= "%.2f" % @cross_percent[:yesterday_low] %></td>
@@ -56,8 +56,8 @@ historical odds based on lookback/lookforward and where the opening is compared 
 <tr>
 <td colspan="2">Ocurrences</td>
 <td><%= @cross_percent[:total_rows] %> </td>
-<td colspan="3">median daily range </td> 
-<td> <%= "%.2f" % @cross_percent[:median_range] %> </td>
+<td colspan="4">median daily range </td> 
+<td colspan="3"> <%= "%.2f" % @cross_percent[:median_range] %> ( <%= ("%.2f" % @cross_percent[:median_25])  %> - <%= ("%.2f" % @cross_percent[:median_range]) %> ) </td>
 </tr>
 <tr>
 <td><%= "%.2f" %  @cross_percent[:cross_pts][0] %></td>
@@ -96,6 +96,14 @@ chance of crossing yesterday's low/high based on historical odds looking at the 
 <td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count] ) %> % </td>
 <td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> % </td>
 <td> <%= "%.0f" % ( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> % </td>
+</tr>
+</table>
+75 % of the time the following points will be crossed during the day.  However, historically, both will be crossed less than 40% (which doesn't make sense, unless the actual chance of crossing is closer to 65%, not 75% of the prediction ).
+<table border="1" ><tr><td> down </td><td>up</td></tr>
+
+<td> <%= "%.2f" % @cross_percent[:last_21_l_25] %> </td>
+<td>
+<%= "%.2f" % @cross_percent[:last_21_u_25] %> </td>
 </tr>
 </table>
 
