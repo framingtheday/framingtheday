@@ -50,6 +50,7 @@ require 'csv'
     @user_input = { :stocksymbol => 'IWM', :period => 1000, :lookback => 2, :lookforward => 2}
   end
  
+ 
 private
 def get_adjusted_close( stock_symbol, today, days )
   stock_symbol.strip!
@@ -103,6 +104,10 @@ def look_back(csv, days_back, days_forward)
       csv[i][:yesterday_high_cross] = (csv[i+1][:stockhigh] < stockhigh and csv[i+1][:stockhigh] > stocklow ) ? 1 : 0
       csv[i][:yesterday_low_cross] = (csv[i+1][:stocklow] < stockhigh and csv[i+1][:stocklow] > stocklow ) ? 1 : 0
       csv[i][:yesterday_close_cross] = (csv[i+1][:stockclose] < stockhigh and csv[i+1][:stockclose] > stocklow ) ? 1 : 0
+      # adjust for size of range
+      csv[i][:yesterday_high_distance] = ( csv[i][:stockopen] - csv[i+1][:stockhigh] ) / csv[i][:median_range] 
+      csv[i][:yesterday_low_distance] = ( csv[i][:stockopen] - csv[i+1][:stocklow] ) / csv[i][:median_range] 
+      csv[i][:yesterday_close_distance] = ( csv[i][:stockopen] - csv[i+1][:stockclose] ) / csv[i][:median_range] 
       # calculate look back
       csv[i].merge!(days_back_values(csv, i+1, days_back))
       csv[i][:open_range] =  (csv[i][:stockopen]-csv[i][:lookback_low])/(csv[i][:lookback_high]-csv[i][:lookback_low])
@@ -151,11 +156,15 @@ def crosses(csv_crosses, days_back, days_forward)
   prior_low_count = 0
   prior_low_cross = 0
   
-  open_prior_high = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stockhigh]) / csv_crosses[0][:median_range]
-  open_prior_low = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stocklow]) / csv_crosses[0][:median_range]
-  open_prior_close = ( csv_crosses[0][:stockopen] - csv_crosses[1][:stockclose]) / csv_crosses[0][:median_range]
   range_crosses = [0, 0,0,0,0,0,0,0,0,0,0,0]
   # skip most recent - should be at least look forward days.
+  hi_pt = distance_20s(csv_crosses, :yesterday_high_distance)
+  low_pt = distance_20s(csv_crosses, :yesterday_low_distance)
+  close_pt = distance_20s(csv_crosses, :yesterday_close_distance)
+  
+  # puts "close"
+  # puts close_pt
+  
   (days_forward..(csv_crosses.length-days_back-1)).each do |i|
   
     if today_pivot_position == csv_crosses[i][:open_pivot_position]
@@ -174,20 +183,19 @@ def crosses(csv_crosses, days_back, days_forward)
       total_rows += 1
     end
     
-    row_prior_high = ( csv_crosses[i][:stockopen] - csv_crosses[i+1][:stockhigh]).to_f / csv_crosses[i][:median_range]
   #  puts   "prior high = #{row_prior_high}  #{csv_crosses[i][:stockopen]} #{csv_crosses[i+1][:stockhigh]} #{csv_crosses[i][:median_range]} #{open_prior_high}"
-   
-    if open_prior_high - 0.03 < row_prior_high and open_prior_high + 0.03 > row_prior_high
+     
+    if hi_pt[:low] <= csv_crosses[i][:yesterday_high_distance] and csv_crosses[i][:yesterday_high_distance] <= hi_pt[:hi] 
       prior_high_count += 1
       prior_high_cross += csv_crosses[i][:yesterday_high_cross]
     end
-    row_prior_low = ( csv_crosses[i][:stockopen] - csv_crosses[i+1][:stocklow]).to_f / csv_crosses[i][:median_range]
-    if open_prior_low - 0.03 < row_prior_low and open_prior_low + 0.03 > row_prior_low
+   
+    if low_pt[:low] <= csv_crosses[i][:yesterday_low_distance] and csv_crosses[i][:yesterday_low_distance] <= low_pt[:hi] 
       prior_low_count += 1
       prior_low_cross += csv_crosses[i][:yesterday_low_cross]
     end
-    row_prior_close = ( csv_crosses[i][:stockopen] - csv_crosses[i+1][:stockclose]).to_f / csv_crosses[i][:median_range]
-    if open_prior_close - 0.03 < row_prior_close and open_prior_close + 0.03 > row_prior_close
+    
+    if close_pt[:low] <= csv_crosses[i][:yesterday_close_distance] and csv_crosses[i][:yesterday_close_distance] <= close_pt[:hi] 
       prior_close_count += 1
       prior_close_cross += csv_crosses[i][:yesterday_close_cross]
     end
@@ -204,7 +212,7 @@ def crosses(csv_crosses, days_back, days_forward)
       end
        csv_crosses[0].merge!(last_21(csv_crosses,1)) 
   
- 
+  # puts prior_close_count, prior_close_cross
    # return a hash of various values to be displayed
   
   { 
@@ -313,7 +321,10 @@ def median_range(csv, i)
   10.times { | whch | a << csv[i+whch+1][:range] if csv[i+whch+1] }
   a.sort!
   a_length = a.length
-  { :median_range => (a[a_length/2]+a[a_length/2-1])/2.0, :median_25 => a[a_length/4], :median_75 => a[(a_length+2)*3/4] }
+  return {:median_range => a[0], :median_25 => a[0], :median_75 => a[a_length-1] } if a_length < 4
+ 
+  { :median_range => (a[a_length/2]+a[a_length/2-1])/2.0, :median_25 => (a[a_length/4-1]+a[a_length/4])/2.0, 
+  :median_75 => ( a[a_length*3/4] + a[a_length*3/4-1]) / 2.0}
 end
 
 def last_21(csv, start) 
@@ -325,6 +336,28 @@ def last_21(csv, start)
   d.sort!
   { :last_21_u_25 => ((1.0 + u[5]) * csv[0][:stockopen]).round(2) , 
   :last_21_l_25 => ((1.0 - d[5]) * csv[0][:stockopen]).round(2) }
+end
+
+def distance_20s(csv, symbol)
+  return nil if csv.length < 20
+  a = []
+  (csv.length - 2).times { |i| a << csv[i][symbol] }
+  a.sort!
+  find = a.index(csv[0][symbol])
+  a_length = a.length
+  a20_length = a_length / 20
+  if find < a20_length
+    first = a[0]
+    last = a[a20_length - 1]
+  elsif find + a20_length >= a_length
+    first = a[a_length - a20_length ]
+    last = a[a_length - 1]
+  else
+    first = a[find - a20_length/2]
+    last = a[find + a20_length / 2 ]
+  end
+  # puts "distance #{last} #{first} #{find} #{a_length} #{a20_length} #{symbol} "
+  { :hi => last, :low=>first }  
 end
 
 end

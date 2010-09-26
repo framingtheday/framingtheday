@@ -1,8 +1,9 @@
 <h1>Historical Chances</h1>
 <p>Not intended as investment advice.</p>
-<p>Based on Yahoo! historical data</p>
+<p>Based on Yahoo! historical data.</p>
 
- Yesterday's prices: 
+<p>Yesterday's prices and 
+chance of crossing yesterday's high/low/close based on historical odds looking at the difference between today's open and yesterday's high / low / close and how often yesterday's high / low / close was crossed. </p>
 <table border="1" >
 <tr><td>day</td><td>open</td><td>high</td><td>low</td><td>last</td>
 </tr>
@@ -17,12 +18,26 @@
 <tr>
 <td><%= @cross_percent[:stockdate_yesterday] %> </td>
 <td><%= "%.2f" % @cross_percent[:yesterday_open] %></td>
-<td><%= "%.2f" % @cross_percent[:yesterday_high] %></td>
-<td><%= "%.2f" % @cross_percent[:yesterday_low] %></td>
-<td><%= "%.2f" % @cross_percent[:yesterday_last] %></td>
+<td <%= colors( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %>
+><%= "%.2f" % @cross_percent[:yesterday_high] %></td>
+<td <%= colors(100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count]) %> 
+><%= "%.2f" % @cross_percent[:yesterday_low] %></td>
+<td <%= colors( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %>
+><%= "%.2f" % @cross_percent[:yesterday_last] %></td>
+</tr>
+<tr><td colspan=2> </td>
+<td <%= colors( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> >
+ <%= "%.0f" % ( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> % </td>
+ 
+ <td <%= colors(100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count]) %> >
+ <%= "%.0f" % ( 100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count] ) %> % </td>
+ 
+<td <%= colors( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> >
+ <%= "%.0f" % ( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> % </td>
+ 
 </tr>
 </table>
-pivot points - historical odds based on open in relation to today's pivot values
+<p>pivot points - historical odds based on open in relation to today's pivot values</p>
 <table border="1" >
    
 <tr>
@@ -33,78 +48,100 @@ pivot points - historical odds based on open in relation to today's pivot values
 <td>s3</td><td>s2</td><td>s1</td><td>pivot</td><td>r1</td><td>r2</td><td>r3</td>
 </tr>
 <tr> 
-<td><%= "%.2f" % @cross_percent[:s3] %></td>
-<td><%= "%.2f" % @cross_percent[:s2] %></td>  
-<td><%= "%.2f" % @cross_percent[:s1] %></td>      
-<td><%= "%.2f" % @cross_percent[:pivot] %></td>
-<td><%= "%.2f" % @cross_percent[:r1] %></td>
-<td><%= "%.2f" % @cross_percent[:r2] %></td>
-<td><%= "%.2f" % @cross_percent[:r3] %></td>
+<td <%= colors(  @cross_percent[:total_s3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.2f" % @cross_percent[:s3] %></td>
+<td <%= colors(@cross_percent[:total_s2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %>  >
+<%= "%.2f" % @cross_percent[:s2] %></td>  
+<td <%= colors( @cross_percent[:total_s1_cross] * 100.0 /@cross_percent[:total_pivot_rows] ) %> >
+<%= "%.2f" % @cross_percent[:s1] %></td>      
+<td <%= colors( @cross_percent[:total_pivot_cross] * 100.0 /@cross_percent[:total_pivot_rows] ) %> >
+<%= "%.2f" % @cross_percent[:pivot] %></td>
+<td <%= colors( @cross_percent[:total_r1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.2f" % @cross_percent[:r1] %></td>
+<td <%= colors( @cross_percent[:total_r2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.2f" % @cross_percent[:r2] %></td>
+<td <%= colors( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %>  >
+<%= "%.2f" % @cross_percent[:r3] %></td>
 </tr>
 <tr> 
-<td><%= "%.0f" % ( @cross_percent[:total_s3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_s2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_s1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_pivot_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_r1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_r2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
-<td><%= "%.0f" % ( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors(  @cross_percent[:total_s3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.0f" % ( @cross_percent[:total_s3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors(@cross_percent[:total_s2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %>  >
+<%= "%.0f" % ( @cross_percent[:total_s2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors( @cross_percent[:total_s1_cross] * 100.0 /@cross_percent[:total_pivot_rows] ) %> >
+<%= "%.0f" % ( @cross_percent[:total_s1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors( @cross_percent[:total_pivot_cross] * 100.0 /@cross_percent[:total_pivot_rows] ) %> >
+<%= "%.0f" % ( @cross_percent[:total_pivot_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors(   @cross_percent[:total_r1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.0f" % ( @cross_percent[:total_r1_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors(   @cross_percent[:total_r2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> >
+<%= "%.0f" % ( @cross_percent[:total_r2_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
+<td <%= colors( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %>  >
+<%= "%.0f" % ( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
 </tr>
 </table>
+<p>
 historical odds based on lookback/lookforward and where the opening is compared to high / low in look back values.
+</p>
 <table border="1">
 <tr>
 <td colspan="2">Ocurrences</td>
 <td><%= @cross_percent[:total_rows] %> </td>
 <td colspan="4">median daily range </td> 
-<td colspan="3"> <%= "%.2f" % @cross_percent[:median_range] %> ( <%= ("%.2f" % @cross_percent[:median_25])  %> - <%= ("%.2f" % @cross_percent[:median_range]) %> ) </td>
+<td colspan="3"> <%= "%.2f" % @cross_percent[:median_range] %> ( <%= ("%.2f" % @cross_percent[:median_25])  %> - <%= ("%.2f" % @cross_percent[:median_75]) %> ) </td>
 </tr>
 <tr>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][0] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][1] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][2] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][3] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][4] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][5] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][6] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][7] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][8] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][9] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][10] %></td>
-<td><%= "%.2f" %  @cross_percent[:cross_pts][11] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][0]  / @cross_percent[:total_rows] )  %>   > 
+<%= "%.2f" %  @cross_percent[:cross_pts][0] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][1]  / @cross_percent[:total_rows] )  %>  > 
+<%= "%.2f" %  @cross_percent[:cross_pts][1] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][2]  / @cross_percent[:total_rows] )  %>  > 
+<%= "%.2f" %  @cross_percent[:cross_pts][2] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][3]  / @cross_percent[:total_rows] )  %> > 
+<%= "%.2f" %  @cross_percent[:cross_pts][3] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][4]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][4] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][5]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][5] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][6]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][6] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][7]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][7] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][8]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][8] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][9]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][9] %></td>
+<td <%= colors(  100.0 * @cross_percent[:range_crosses][10]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][10] %></td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %> >
+<%= "%.2f" %  @cross_percent[:cross_pts][11] %></td>
 </tr>
 <tr>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][0]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][1]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][2]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][3]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][4]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][5]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][6]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][7]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][8]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][9]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][10]  / @cross_percent[:total_rows] )  %> % </td>
-<td><%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][0]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][0]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][1]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][1]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][2]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][2]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][3]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][3]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][4]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][4]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][5]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][5]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][6]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][6]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][7]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][7]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][8]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][8]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][9]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][9]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][10]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][10]  / @cross_percent[:total_rows] )  %> % </td>
+<td <%= colors( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %> % </td>
 </tr>
+</table>
 
-</table>
-chance of crossing yesterday's low/high based on historical odds looking at the difference between today's open and yesterday's high (low) and how often the high (low) was crossed.
-<table border="1">
-<tr><td>low cross</td><td>close cross</td> <td> high cross</td> </tr>
-<tr>
-<td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_low_cross] / @cross_percent[:prior_low_count] ) %> % </td>
-<td> <%= "%.0f" % ( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> % </td>
-<td> <%= "%.0f" % ( 100.0 *  @cross_percent[:prior_high_cross] / @cross_percent[:prior_high_count] ) %> % </td>
-</tr>
-</table>
 75 % of the time the following points will be crossed during the day.  However, historically, both will be crossed less than 40% (which doesn't make sense, unless the actual chance of crossing is closer to 65%, not 75% of the prediction ).
 <table border="1" ><tr><td> down </td><td>up</td></tr>
 
-<td> <%= "%.2f" % @cross_percent[:last_21_l_25] %> </td>
-<td>
+<td id="seventy" > <%= "%.2f" % @cross_percent[:last_21_l_25] %> </td>
+<td id="seventy" >
 <%= "%.2f" % @cross_percent[:last_21_u_25] %> </td>
 </tr>
 </table>
 
  <%= render 'layouts/inputs' %>
+ 
+<p> <a href="http://framingtheday.wordpress.com/2010/03/28/iwm-cross-statistics"> statistics concerning high/low look back crosses </a> </p>
+<p> <a href="http://framingtheday.wordpress.com/2010/05/08/accuracy-of-the-pivot-cross-chances"> statistics concerning pivot crosses </a> </p>
