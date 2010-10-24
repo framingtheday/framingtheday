@@ -6,7 +6,7 @@ require 'csv'
 
   def display
     @user_input = { :stocksymbol => params[:stocksymbol].to_s.upcase, :startdate => DateTime.now, :period => params[:period], :lookback => params[:lookback], :lookforward => params[:lookforward] , :openprice => params[:openprice]}
-    
+    # validate user input
     begin
      period = @user_input[:period].to_i
      period = 100 if period < 100
@@ -33,16 +33,27 @@ require 'csv'
     
     # should test to make sure lookback, lookforward are reasonable with respect to period.  if period is too short
     # then not statistically valid.
+    #
+    # get data from yahoo!
+    #
     yahoo_csv =  get_adjusted_close( @user_input[:stocksymbol], @user_input[:startdate], period )
+    #
+    # convert to numeric, data values
+    #
     csv = csv_to_number(yahoo_csv)
     # adjust open price if entered....
     if params[:openprice].length > 0
       begin
         csv[0][:stockopen] = params[:openprice].to_f 
+        csv[0][:stockdate] = DateTime.now.to_date
       rescue
       end
     end
+    #
+    # calculate historical values - if high, low, etc were crossed on a particular day
+    #
     csv_crosses = look_back(csv, lookback, lookforward)
+    
     @cross_percent = crosses(csv_crosses, lookback, lookforward)
     csv_crosses
   end
@@ -52,6 +63,7 @@ require 'csv'
  
  
 private
+
 def get_adjusted_close( stock_symbol, today, days )
   stock_symbol.strip!
   today = DateTime.now
@@ -71,7 +83,7 @@ def get_adjusted_close( stock_symbol, today, days )
    
     csv.insert(1, [d.to_s, csv_today[0][5], csv_today[0][6], csv_today[0][7], csv_today[0][1], csv_today[0][8], csv_today[0][1] ] )
 end
-
+# convert each line to a hash
 def csv_to_number(csv)
   csv_converted = []
   # first convert to numbers (and date)
@@ -82,8 +94,9 @@ def csv_to_number(csv)
    end
    csv_converted
 end
-
-
+#
+# calculate crosses
+#
 def look_back(csv, days_back, days_forward)
     (csv.length-days_back).times do | i |
       # calculate pivots 
@@ -104,10 +117,10 @@ def look_back(csv, days_back, days_forward)
       csv[i][:yesterday_high_cross] = (csv[i+1][:stockhigh] < stockhigh and csv[i+1][:stockhigh] > stocklow ) ? 1 : 0
       csv[i][:yesterday_low_cross] = (csv[i+1][:stocklow] < stockhigh and csv[i+1][:stocklow] > stocklow ) ? 1 : 0
       csv[i][:yesterday_close_cross] = (csv[i+1][:stockclose] < stockhigh and csv[i+1][:stockclose] > stocklow ) ? 1 : 0
-      # adjust for size of range
-      csv[i][:yesterday_high_distance] = ( csv[i][:stockopen] - csv[i+1][:stockhigh] ) / csv[i][:median_range] 
-      csv[i][:yesterday_low_distance] = ( csv[i][:stockopen] - csv[i+1][:stocklow] ) / csv[i][:median_range] 
-      csv[i][:yesterday_close_distance] = ( csv[i][:stockopen] - csv[i+1][:stockclose] ) / csv[i][:median_range] 
+      # adjust for size of range (trying to remove some of the volatility from the calculations)
+      csv[i][:yesterday_high_distance] = ( csv[i][:stockopen] - csv[i+1][:stockhigh] ) / csv[i][:median_long_range] 
+      csv[i][:yesterday_low_distance] = ( csv[i][:stockopen] - csv[i+1][:stocklow] ) / csv[i][:median_long_range] 
+      csv[i][:yesterday_close_distance] = ( csv[i][:stockopen] - csv[i+1][:stockclose] ) / csv[i][:median_long_range] 
       # calculate look back
       csv[i].merge!(days_back_values(csv, i+1, days_back))
       csv[i][:open_range] =  (csv[i][:stockopen]-csv[i][:lookback_low])/(csv[i][:lookback_high]-csv[i][:lookback_low])
@@ -134,6 +147,16 @@ def look_back(csv, days_back, days_forward)
     end
     csv
 end
+# at this point, the csv_crosses is an array with the original high/low info, plus additional info
+#   on if various points (prior day's high/low/close), pivot points, were crossed.
+#  now go through that data, and based on today's opening price, look at each row in csv_crosses.
+#   if csv_crosses has a row that is similar to today then look to see if various points were crossed.
+#     for example, if today's open was slightly below the pivot point, 
+#       then look to see if each row had an open value was slightly below the pivot point.
+#       if it did, then the total count gets increased by 1
+#       if it did, and it also the pivot point was crossed, then total_pivot count gets increased by 1
+#       after all the rows have been examined, divide the total # of rows with crosses by the total number of rows to get
+#          the chances of the pivot point being crossed.
 
 def crosses(csv_crosses, days_back, days_forward)
   # first row is today.
@@ -210,7 +233,7 @@ def crosses(csv_crosses, days_back, days_forward)
       12.times do | j |
         pts[j] =   ( j - 3.0 ) / 5.0 * ( csv_crosses[0][:lookback_high] - csv_crosses[0][:lookback_low] ) + csv_crosses[0][:lookback_low] 
       end
-       csv_crosses[0].merge!(last_21(csv_crosses,1)) 
+       csv_crosses[0].merge!(last_41(csv_crosses,1)) 
   
   # puts prior_close_count, prior_close_cross
    # return a hash of various values to be displayed
@@ -256,12 +279,14 @@ def crosses(csv_crosses, days_back, days_forward)
 :prior_close_cross => prior_close_cross,
 :prior_low_count => prior_low_count ,
 :prior_low_cross => prior_low_cross,
-:last_21_u_25 => csv_crosses[0][:last_21_u_25],
-:last_21_l_25 => csv_crosses[0][:last_21_l_25] 
+:last_41_u_25 => csv_crosses[0][:last_41_u_25],
+:last_41_l_25 => csv_crosses[0][:last_41_l_25] 
 
 }
 end
-
+#
+# calculate pivot values
+#
 def pivot_values(csv)
       pivot_value = (csv[:stockhigh] + csv[:stocklow] + csv[:stockclose]) / 3 
       high_low = csv[:stockhigh] - csv[:stocklow]
@@ -273,6 +298,7 @@ def pivot_values(csv)
        :s2 => pivot_value - high_low,
        :s3 => pivot_value - 2 * high_low }
 end
+# calculate high, low over past 'days'
 
 def days_back_values(csv, start, days)
   back_low = csv[start][:stocklow]
@@ -286,6 +312,10 @@ def days_back_values(csv, start, days)
   { :lookback_high => back_high, :lookback_low => back_low }
 
 end
+#
+# see where the opening price in the s2 / s1 / pivot / r1 / r2
+# further subdivide s1/pivot and pivot/r1 into 4 parts, as these are the most common open positions
+#
 
 def open_pivot_position(csv )
  if csv[:stockopen] < csv[:s2 ]  
@@ -315,28 +345,48 @@ def open_pivot_position(csv )
   end
   open_pivot
 end
+# find the median range (day high - day low) over the past 10 days and 40 days.
 
 def median_range(csv, i)
   a = []
   10.times { | whch | a << csv[i+whch+1][:range] if csv[i+whch+1] }
   a.sort!
-  a_length = a.length
-  return {:median_range => a[0], :median_25 => a[0], :median_75 => a[a_length-1] } if a_length < 4
+  a_length = a.length 
+  
+  b = []
+  40.times { | whch | b  << csv[i+whch+1][:range] if csv[i+whch+1] }
+  b.sort!
+  b_length = b.length
+  if a_length < 4  
+    return {:median_range => a[0], :median_25 => a[0], :median_75 => a[a_length-1], :median_long_range => b[0] } 
+  end
  
   { :median_range => (a[a_length/2]+a[a_length/2-1])/2.0, :median_25 => (a[a_length/4-1]+a[a_length/4])/2.0, 
-  :median_75 => ( a[a_length*3/4] + a[a_length*3/4-1]) / 2.0}
+  :median_75 => ( a[a_length*3/4] + a[a_length*3/4-1]) / 2.0, :median_long_range => (b[b_length/2]+b[b_length/2-1])/2.0 }
 end
+# using the last 41 days, sort the high-open/median range values, choose the 10th range value, compute value for 75% reached.
 
-def last_21(csv, start) 
+def last_41(csv, start) 
   u = []
   d = []
-  u = (start..(start+20)).map { |i| (csv[i][:stockhigh]-csv[i][:stockopen])/csv[i][:stockopen] }
-  d = (start..(start+20)).map { |i| (csv[i][:stockopen]-csv[i][:stocklow])/csv[i][:stockopen] }
+  u = (start..(start+40)).map { |i| (csv[i][:stockhigh]-csv[i][:stockopen])/csv[i][:median_long_range] }
+  d = (start..(start+40)).map { |i| (csv[i][:stockopen]-csv[i][:stocklow])/csv[i][:median_long_range] }
   u.sort!
   d.sort!
-  { :last_21_u_25 => ((1.0 + u[5]) * csv[0][:stockopen]).round(2) , 
-  :last_21_l_25 => ((1.0 - d[5]) * csv[0][:stockopen]).round(2) }
+  # puts ":median_range = #{  csv[1][:median_long_range] } u[5]= #{u[5]} d[5] = #{d[5]}"
+  { :last_41_u_25 => (csv[0][:stockopen] + (u[10] * csv[1][:median_long_range])).round(2) , 
+  :last_41_l_25 => (csv[0][:stockopen]  - (d[10] * csv[1][:median_long_range])).round(2) }
 end
+#
+#  take csv and sort values for particular symbol (eg :yesterday_high_distance)
+#    find today's value for the symbol in the sorted array (record index position)
+#    now find the values +/- csv.length/20 
+#  for example, we are looking for :distance_high, and csv array had 1000 items, 
+#     then sort the csv array by :distance_high values
+#    look for today's :distance_high value (call it today_distance_high_index)
+#       now look at sorted array - 50 items to sorted array + 50 items
+#       now return those values.
+# that way, you are more likely to get around 1/10 of the total csv value to calculate the percentages.
 
 def distance_20s(csv, symbol)
   return nil if csv.length < 20

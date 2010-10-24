@@ -2,7 +2,8 @@
 <p>Not intended as investment advice.</p>
 <p>Based on Yahoo! historical data.</p>
 
-<p>Yesterday's prices and 
+
+<table><tr><td><p>Yesterday's prices and 
 chance of crossing yesterday's high/low/close based on historical odds looking at the difference between today's open and yesterday's high / low / close and how often yesterday's high / low / close was crossed. </p>
 <table border="1" >
 <tr><td>day</td><td>open</td><td>high</td><td>low</td><td>last</td>
@@ -36,7 +37,7 @@ chance of crossing yesterday's high/low/close based on historical odds looking a
  <%= "%.0f" % ( 100.0 * @cross_percent[:prior_close_cross] / @cross_percent[:prior_close_count] ) %> % </td>
  
 </tr>
-</table>
+</table></td><td>
 <p>pivot points - historical odds based on open in relation to today's pivot values</p>
 <table border="1" >
    
@@ -79,7 +80,7 @@ chance of crossing yesterday's high/low/close based on historical odds looking a
 <td <%= colors( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %>  >
 <%= "%.0f" % ( @cross_percent[:total_r3_cross] * 100.0 /@cross_percent[:total_pivot_rows] )  %> % </td>
 </tr>
-</table>
+</table></td></tr></table>
 <p>
 historical odds based on lookback/lookforward and where the opening is compared to high / low in look back values.
 </p>
@@ -131,13 +132,13 @@ historical odds based on lookback/lookforward and where the opening is compared 
 <td <%= colors( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %>   > <%= "%.0f" % ( 100.0 * @cross_percent[:range_crosses][11]  / @cross_percent[:total_rows] )  %> % </td>
 </tr>
 </table>
-
-75 % of the time the following points will be crossed during the day.  However, historically, both will be crossed less than 40% (which doesn't make sense, unless the actual chance of crossing is closer to 65%, not 75% of the prediction ).
+<p>
+75 % of the time one of the following points will be crossed during the day. Around 45% of the time both will be crossed. </p>
 <table border="1" ><tr><td> down </td><td>up</td></tr>
 
-<td id="seventy" > <%= "%.2f" % @cross_percent[:last_21_l_25] %> </td>
+<td id="seventy" > <%= "%.2f" % @cross_percent[:last_41_l_25] %> </td>
 <td id="seventy" >
-<%= "%.2f" % @cross_percent[:last_21_u_25] %> </td>
+<%= "%.2f" % @cross_percent[:last_41_u_25] %> </td>
 </tr>
 </table>
 
