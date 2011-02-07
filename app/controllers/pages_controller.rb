@@ -181,9 +181,9 @@ def crosses(csv_crosses, days_back, days_forward)
   
   range_crosses = [0, 0,0,0,0,0,0,0,0,0,0,0]
   # skip most recent - should be at least look forward days.
-  hi_pt = distance_20s(csv_crosses, :yesterday_high_distance)
-  low_pt = distance_20s(csv_crosses, :yesterday_low_distance)
-  close_pt = distance_20s(csv_crosses, :yesterday_close_distance)
+  hi_pt = distance_20s(csv_crosses, :yesterday_high_distance, days_back)
+  low_pt = distance_20s(csv_crosses, :yesterday_low_distance, days_back)
+  close_pt = distance_20s(csv_crosses, :yesterday_close_distance, days_back)
   
   # puts "close"
   # puts close_pt
@@ -388,10 +388,10 @@ end
 #       now return those values.
 # that way, you are more likely to get around 1/10 of the total csv value to calculate the percentages.
 
-def distance_20s(csv, symbol)
+def distance_20s(csv, symbol, daysback)
   return nil if csv.length < 20
   a = []
-  (csv.length - 2).times { |i| a << csv[i][symbol] }
+  (csv.length - daysback).times { |i| a << csv[i][symbol] }
   a.sort!
   find = a.index(csv[0][symbol])
   a_length = a.length
